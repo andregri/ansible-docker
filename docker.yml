@@ -48,6 +48,15 @@
         state: latest
       become: yes
 
+    - name: Expose Docker API over http
+      lineinfile:
+        path: /lib/systemd/system/docker.service
+        regexp: 'ExecStart=/usr/bin/dockerd*'
+        line: ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:4243 -H unix:///var/run/docker.sock
+        owner: root
+        group: root
+        mode: '0644'
+
     - name: Start Docker service
       service:
         name: docker
