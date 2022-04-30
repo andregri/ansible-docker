@@ -8,7 +8,7 @@
     - name: Install yum utils
       ansible.builtin.yum:
         name: yum-utils
-        state: latest
+        state: present
 
     - name: Install device-mapper-persistent-data
       ansible.builtin.yum:
