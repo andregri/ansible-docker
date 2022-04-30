@@ -1,69 +1,72 @@
 ---
 - name: Install docker and expose API
-  gather_facts: No
+  gather_facts: false
   hosts: all
   become: true
 
-  tasks:    
+  tasks:
     - name: Install yum utils
-      yum:
+      ansible.builtin.yum:
         name: yum-utils
         state: latest
 
     - name: Install device-mapper-persistent-data
-      yum:
+      ansible.builtin.yum:
         name: device-mapper-persistent-data
-        state: latest
+        state: present
 
     - name: Install lvm2
-      yum:
+      ansible.builtin.yum:
         name: lvm2
-        state: latest
-    
+        state: present
+
     - name: Install python3
-      yum:
+      ansible.builtin.yum:
         name: python3
-        state: latest
-    
+        state: present
+
     - name: Install pip
-      yum:
+      ansible.builtin.yum:
         name: python3-pip
-        state: latest
-    
+        state: present
+
     - name: Install python docker module
-      pip:
+      ansible.builtin.pip:
         name: docker
 
     - name: Add Docker repo
-      get_url:
+      ansible.builtin.get_url:
         url: https://download.docker.com/linux/centos/docker-ce.repo
         dest: /etc/yum.repos.d/docer-ce.repo
-      become: yes
+        mode: '0644'
+      become: true
 
     - name: Enable Docker Edge repo
-      ini_file:
+      community.general.ini_file:
         dest: /etc/yum.repos.d/docer-ce.repo
         section: 'docker-ce-edge'
         option: enabled
         value: 0
-      become: yes
+        mode: '0644'
+      become: true
 
     - name: Enable Docker Test repo
-      ini_file:
+      community.general.ini_file:
         dest: /etc/yum.repos.d/docer-ce.repo
         section: 'docker-ce-test'
         option: enabled
         value: 0
-      become: yes
+        mode: '0644'
+      become: true
 
     - name: Install Docker
-      package:
+      ansible.builtin.package:
         name: docker-ce
-        state: latest
-      become: yes
+        state: present
+      become: true
 
     - name: Expose Docker API over http
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: /lib/systemd/system/docker.service
         regexp: 'ExecStart=/usr/bin/dockerd*'
         line: ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:4243 -H unix:///var/run/docker.sock
@@ -72,18 +75,18 @@
         mode: '0644'
 
     - name: Start Docker service
-      service:
+      ansible.builtin.service:
         name: docker
         state: started
-        enabled: yes
-      become: yes
+        enabled: true
+      become: true
 
     - name: Add user vagrant to docker group
-      user:
+      ansible.builtin.user:
         name: vagrant
         groups: docker
-        append: yes
-      become: yes
+        append: true
+      become: true
 
 
 - name: Init Docker swarm manager nodes
@@ -92,27 +95,30 @@
 
   tasks:
     - name: Check if Swarm has already been Initialized
-      shell: docker node ls
+      ansible.builtin.command: docker node ls
       register: swarm_status
       ignore_errors: true
+      changed_when: false
 
     - name: Initialize Docker Swarm
-      docker_swarm:
+      community.general.docker_swarm:
         state: present
         advertise_addr: "{{ ansible_host }}"
       when: swarm_status.rc != 0
       run_once: true
 
     - name: Get the Manager join-token
-      shell: docker swarm join-token --quiet manager
+      ansible.builtin.command: docker swarm join-token --quiet manager
       register: manager_token
+      changed_when: false
 
     - name: Get the worker join-token
-      shell: docker swarm join-token --quiet worker
+      ansible.builtin.command: docker swarm join-token --quiet worker
       register: worker_token
-    
+      changed_when: false
+
     - name: Add Managers to the Swarm
-      docker_swarm:
+      community.general.docker_swarm:
         state: join
         advertise_addr: "{{ hostvars['manager-node']['ansible_default_ipv4']['address'] }}"
         join_token: "{{ hostvars['manager-node']['manager_token']['stdout'] }}"
@@ -124,10 +130,10 @@
   hosts: workers
   become: true
 
-  tasks:    
+  tasks:
     - name: Add Workers to the Swarm
-      docker_swarm:
+      community.general.docker_swarm:
         state: join
         advertise_addr: "{{ ansible_host }}"
         join_token: "{{ hostvars['manager-node']['worker_token']['stdout'] }}"
-        remote_addrs: [ "{{ hostvars['manager-node']['ansible_facts']['eth1']['ipv4']['address'] }}:2377" ]
+        remote_addrs: ["{{ hostvars['manager-node']['ansible_facts']['eth1']['ipv4']['address'] }}:2377"]
