@@ -1,0 +1,10 @@
+---
+# tasks file for docker
+- name: "main | include python3 task"
+  include_tasks: common.yml
+
+- name: "main | include python3 task"
+  include_tasks: python3.yml
+
+- name: "main | include install-docker task"
+  include_tasks: install-docker.yml

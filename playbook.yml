@@ -4,66 +4,13 @@
   hosts: all
   become: true
 
+  vars:
+    user: vagrant
+
   tasks:
-    - name: Install yum utils
-      ansible.builtin.yum:
-        name: yum-utils
-        state: present
-
-    - name: Install device-mapper-persistent-data
-      ansible.builtin.yum:
-        name: device-mapper-persistent-data
-        state: present
-
-    - name: Install lvm2
-      ansible.builtin.yum:
-        name: lvm2
-        state: present
-
-    - name: Install python3
-      ansible.builtin.yum:
-        name: python3
-        state: present
-
-    - name: Install pip
-      ansible.builtin.yum:
-        name: python3-pip
-        state: present
-
-    - name: Install python docker module
-      ansible.builtin.pip:
+    - name: Install Docker and its dependencies
+      ansible.builtin.include_role:
         name: docker
-
-    - name: Add Docker repo
-      ansible.builtin.get_url:
-        url: https://download.docker.com/linux/centos/docker-ce.repo
-        dest: /etc/yum.repos.d/docer-ce.repo
-        mode: '0644'
-      become: true
-
-    - name: Enable Docker Edge repo
-      community.general.ini_file:
-        dest: /etc/yum.repos.d/docer-ce.repo
-        section: 'docker-ce-edge'
-        option: enabled
-        value: 0
-        mode: '0644'
-      become: true
-
-    - name: Enable Docker Test repo
-      community.general.ini_file:
-        dest: /etc/yum.repos.d/docer-ce.repo
-        section: 'docker-ce-test'
-        option: enabled
-        value: 0
-        mode: '0644'
-      become: true
-
-    - name: Install Docker
-      ansible.builtin.package:
-        name: docker-ce
-        state: present
-      become: true
 
     - name: Expose Docker API over http
       ansible.builtin.lineinfile:
@@ -83,7 +30,7 @@
 
     - name: Add user vagrant to docker group
       ansible.builtin.user:
-        name: vagrant
+        name: "{{ user }}"
         groups: docker
         append: true
       become: true

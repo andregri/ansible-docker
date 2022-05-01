@@ -1,0 +1,12 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Install sudo"
+      ansible.builtin.yum:
+        name: sudo
+        state: present
+
+    - name: "Include andregri.docker"
+      ansible.builtin.include_role:
+        name: "andregri.docker"

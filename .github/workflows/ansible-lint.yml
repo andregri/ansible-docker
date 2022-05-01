@@ -20,6 +20,4 @@ jobs:
           pip install ansible ansible-lint
 
       - name: Lint playbook
-        run: |
-          ansible-playbook docker.yml --syntax-check
-          ansible-lint docker.yml
+        run: ansible-lint

@@ -1,0 +1,16 @@
+---
+# tasks file for common_packages
+- name: "common | Install yum utils"
+  ansible.builtin.yum:
+    name: yum-utils
+    state: present
+
+- name: "common | Install device-mapper-persistent-data"
+  ansible.builtin.yum:
+    name: device-mapper-persistent-data
+    state: present
+
+- name: "common | Install lvm2"
+  ansible.builtin.yum:
+    name: lvm2
+    state: present
