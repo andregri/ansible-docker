@@ -13,6 +13,6 @@ jobs:
         uses: gofrolist/molecule-action@v2
         with:
           molecule_command: test
-          molecule_working_dir: 'roles/docker'
+          molecule_working_dir: '/andregri/ansible-docker/roles/docker'
         env:
           ANSIBLE_FORCE_COLOR: '1'
